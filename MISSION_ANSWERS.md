@@ -239,7 +239,17 @@ Dọn: `docker compose -p k5-day14-docker down -v`.
 
 ### Exercise 3.1 / 3.2: Deploy agent Part 6
 
-- **Public URL:** _(chưa deploy — điền sau, chi tiết trong [DEPLOYMENT.md](DEPLOYMENT.md))_
+- **Public URL:** https://day14-production-agent-sqtk.onrender.com (**Render**, Blueprint `06-lab-complete/render.yaml`; chi tiết trong [DEPLOYMENT.md](DEPLOYMENT.md)).
+- Định chọn Railway (Exercise 3.1) làm nền tảng chính, nhưng `railway init` báo `Your trial has expired. Please select a plan to continue using Railway.`, nên chuyển sang Render (Exercise 3.2). Redis là Key Value `day14-redis` trên Render; `REDIS_URL` nối bằng `fromService`.
+- Kết quả 4 lệnh tự kiểm ở CP6 (2026-11-25 12:19 UTC):
+
+```text
+$ curl -sS -o /dev/null -w '%{http_code}\n' "$BASE/health"                         → 200
+$ curl -sS -o /dev/null -w '%{http_code}\n' "$BASE/ready"                          → 200   {"status":"ready","redis":"ok"}
+$ curl ... -X POST "$BASE/ask" -d '{"question":"Hello"}'                           → 401
+$ curl ... -X POST "$BASE/ask" -H "X-API-Key: $AGENT_API_KEY" -d '{"question":"Hello"}' → 200
+vòng lặp 12 request: 200 200 200 200 200 200 200 429 429 429 429 429   (retry-after: 42)
+```
 - Image deploy là image đã đạt `PASS 12/12` (multi-stage, 63 MB); `CMD` đọc `${PORT:-8000}` nên chạy được với PORT do platform cấp.
 - Biến môi trường đặt trên platform, không có trong code: `AGENT_API_KEY`, `REDIS_URL` (trỏ tới Redis tạo trên platform), `ENVIRONMENT=production`, `RATE_LIMIT_PER_MINUTE`, `DAILY_BUDGET_USD`, `MONTHLY_BUDGET_USD`.
 
